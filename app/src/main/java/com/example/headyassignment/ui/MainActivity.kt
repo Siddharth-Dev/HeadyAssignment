@@ -1,7 +1,8 @@
-package com.example.headyassignment
+package com.example.headyassignment.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import com.example.headyassignment.R
 
 class MainActivity : AppCompatActivity() {
 
