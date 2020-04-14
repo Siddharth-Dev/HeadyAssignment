@@ -14,5 +14,4 @@ data class Product(@PrimaryKey
                    var shareCout: Long = 0,
                    var categoryId: Long,
                    @Embedded
-                   var tax: Vat
-)
+                   var tax: Vat)

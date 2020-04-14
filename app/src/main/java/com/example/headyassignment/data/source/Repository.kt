@@ -5,12 +5,11 @@ import com.example.headyassignment.data.source.db.AppDatabase
 import com.example.headyassignment.data.source.db.dao.CategoryDao
 import com.example.headyassignment.data.source.db.dao.ProductDao
 import com.example.headyassignment.data.source.db.dao.VariantDao
-import com.example.headyassignment.data.source.db.entity.Category
-import com.example.headyassignment.data.source.db.entity.Product
-import com.example.headyassignment.data.source.db.entity.Variant
-import com.example.headyassignment.data.source.db.entity.Vat
+import com.example.headyassignment.data.source.db.entity.*
 import com.example.headyassignment.data.source.remote.ApiService
 import com.example.headyassignment.utils.Utility
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -38,22 +37,41 @@ class Repository private constructor(context: Context){
         AppDatabase.getDatabase(context.applicationContext)
     }
 
-    suspend fun fetchData() {
+    suspend fun getCategoriesForParent(id: Long): List<CategoryWithChildren>? {
+        return database.categoryWithChildrenDao().getCategoriesForParent(id)
+    }
 
-        // TODO check DB else call api
-
-       val response = apiInterface.getData()
-
-        if (response.isSuccessful) {
-
-            val responseData = response.body()?.string()
-            responseData?.let {
-                parseAndSaveData(responseData)
-            }
-        } else {
-            val msg = response.errorBody()?.string() ?: response.message()
-            Utility.log(TAG, "fetchData: failed to get data. Error - $msg")
+    suspend fun getProductsForCategory(orderId: Int, id: Long): List<ProductWithVariants>? {
+        return when (orderId) {
+            0 -> database.productWithVariantsDao().getProductsForCategoryOrderByView(id)
+            1 -> database.productWithVariantsDao().getProductsForCategoryOrderByOrdered(id)
+            else -> database.productWithVariantsDao().getProductsForCategoryOrderByShared(id)
         }
+    }
+
+    suspend fun fetchData(): List<CategoryWithChildren>? {
+
+        var items = database.categoryWithChildrenDao().getTopLevelCategories()
+
+        if (items == null || items.isEmpty()) {
+            val response = apiInterface.getData()
+
+            if (response.isSuccessful) {
+
+                val responseData = response.body()?.string()
+                responseData?.let {
+                    parseAndSaveData(responseData)
+                }
+
+                // update items
+                items = database.categoryWithChildrenDao().getTopLevelCategories()
+            } else {
+                val msg = response.errorBody()?.string() ?: response.message()
+                Utility.log(TAG, "fetchData: failed to get data. Error - $msg")
+            }
+        }
+
+        return items
     }
 
     private suspend fun parseAndSaveData(response: String) {
@@ -63,10 +81,15 @@ class Repository private constructor(context: Context){
         val categoriesJson = mainJson.getJSONArray("categories")
         val idForProductMap = HashMap<Long, Product>()
         val idForCategoryMap = HashMap<Long, Category>()
-        val categoryIdForSubCategoriesIdMap = HashMap<Long,JSONArray>()
+        val categoryIdForSubCategoriesIdMap = HashMap<Long, JSONArray>()
 
         for (i in 0 until categoriesJson.length()) {
-            parseCategory(categoriesJson.getJSONObject(i), idForCategoryMap, categoryIdForSubCategoriesIdMap, idForProductMap)
+            parseCategory(
+                categoriesJson.getJSONObject(i),
+                idForCategoryMap,
+                categoryIdForSubCategoriesIdMap,
+                idForProductMap
+            )
         }
 
         val rankingJson = mainJson.getJSONArray("rankings")
@@ -84,12 +107,12 @@ class Repository private constructor(context: Context){
     }
 
     private suspend fun parseCategory(categoryJson: JSONObject, idForCategoryMap: HashMap<Long, Category>, categoryIdForSubCategoriesIdMap: HashMap<Long,JSONArray>, idForProductMap: HashMap<Long, Product>) {
-
+        Utility.log(TAG, "parseCategory: In")
         val childCategoryArray = categoryJson.getJSONArray("child_categories")
 
         val category = Category(
             categoryJson.getLong("id"),
-            categoryJson.getString("name"),
+            categoryJson.getString("name").trim(),
             categoryJson.getJSONArray("products").length().toLong(),
             childCategoryArray.length().toLong(),
             null
@@ -124,6 +147,7 @@ class Repository private constructor(context: Context){
     }
 
     private suspend fun parseProductForCategory(categoryJson: JSONObject, idForProductMap: HashMap<Long, Product>) {
+        Utility.log(TAG, "parseProductForCategory: In")
         val productsJson = categoryJson.getJSONArray("products")
         val categoryId = categoryJson.getLong("id");
 
@@ -132,13 +156,13 @@ class Repository private constructor(context: Context){
             val taxJson = productJson.getJSONObject("tax")
 
             val vat = Vat(
-                taxJson.getString("name"),
+                taxJson.getString("name").trim(),
                 taxJson.getDouble("value")
             )
 
             val product = Product(
                 productJson.getLong("id"),
-                productJson.getString("name"),
+                productJson.getString("name").trim(),
                 productJson.getString("date_added"),
                 categoryId = categoryId,
                 tax = vat)
@@ -156,9 +180,9 @@ class Repository private constructor(context: Context){
         for (i in 0 until variantsJson.length()) {
             val variantJson = variantsJson.getJSONObject(i)
             val variant = Variant(variantJson.getLong("id"),
-                                variantJson.getString("color"),
-                                variantJson.getInt("size"),
-                                variantJson.getDouble("price"),
+                                variantJson.optString("color"),
+                                variantJson.optInt("size"),
+                                variantJson.optDouble("price"),
                                 productId)
 
             // Save variant in DB

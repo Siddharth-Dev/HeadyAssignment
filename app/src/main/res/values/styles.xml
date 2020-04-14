@@ -6,6 +6,18 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+        <item name="android:listDivider">@drawable/list_divider</item>
+    </style>
+
+    <!-- Popup Style -->
+    <style name="MyPopupStyle" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <!-- Used for the buttons -->
+        <item name="colorAccent">@color/colorAccent</item>
+        <!-- Used for the title and text -->
+        <item name="android:textColorPrimary">@color/colorPrimary</item>
+        <!-- Used for the background -->
+        <item name="android:background">@android:color/white</item>
     </style>
 
 </resources>

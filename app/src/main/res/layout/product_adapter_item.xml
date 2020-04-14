@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <import type="android.view.View"/>
+        <variable
+            name="item"
+            type="com.example.headyassignment.data.source.db.entity.ProductWithVariants" />
+        <variable
+            name="viewModel"
+            type="com.example.headyassignment.ui.fragment.DisplayViewModel" />
+    </data>
+
+    <androidx.cardview.widget.CardView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        app:cardCornerRadius="5dp"
+        app:cardElevation="2dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_margin="2dp"
+        android:layout_width="140dp"
+        android:layout_height="100dp"
+        android:onClick="@{()->viewModel.onItemClicked(item)}"
+        android:foreground="?attr/selectableItemBackgroundBorderless">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:padding="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:id="@+id/name"
+                android:text="@{item.displayName}"
+                android:textSize="16sp"
+                android:maxLines="2"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"
+                android:paddingBottom="5dp"
+                android:textStyle="bold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/name"
+                android:id="@+id/color"
+                android:text="@{item.getColorDetail()}"
+                android:textSize="14sp"
+                android:maxLines="2"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"
+                android:paddingBottom="2dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/color"
+                android:id="@+id/size"
+                android:text="@{item.getSizeDetail()}"
+                android:visibility="@{item.isSizeApplicable() ? View.VISIBLE : View.GONE}"
+                android:textSize="14sp"
+                android:maxLines="2"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"
+                android:paddingBottom="2dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/size"
+                android:id="@+id/price"
+                android:text="@{item.getLowestPrice()}"
+                android:textSize="14sp"
+                android:maxLines="1"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"
+                android:paddingBottom="2dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/price"
+                android:id="@+id/vat"
+                android:text="@{item.getTaxInfo()}"
+                android:textSize="14sp"
+                android:maxLines="1"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"
+                android:paddingBottom="2dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/vat"
+                android:id="@+id/rank"
+                android:text="@{item.getRank(viewModel.productsSortOrder)}"
+                android:textSize="14sp"
+                android:maxLines="1"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"
+                android:paddingBottom="2dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.cardview.widget.CardView>
+</layout>

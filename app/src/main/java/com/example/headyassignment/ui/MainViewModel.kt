@@ -1,13 +1,19 @@
 package com.example.headyassignment.ui
 
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
+import android.app.Application
+import androidx.lifecycle.MutableLiveData
 
-class MainViewModel : BaseViewModel() {
+class MainViewModel(application: Application) : BaseViewModel(application) {
+    val homeTile = "Heady"
+    var title: String = homeTile
+    val showBack = MutableLiveData<Boolean>()
 
-    fun fetchData() {
-        viewModelScope.launch {
-            repository.fetchData()
+    fun showBackWithTitle(title: String, enableBack: Boolean) {
+        if (enableBack) {
+            this.title = title
+        } else {
+            this.title = homeTile
         }
+        showBack.value = enableBack
     }
 }
