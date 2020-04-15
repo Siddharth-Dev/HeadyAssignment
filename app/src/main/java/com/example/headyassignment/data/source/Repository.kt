@@ -58,11 +58,12 @@ class Repository private constructor(context: Context){
 
             if (response.isSuccessful) {
 
-                val responseData = response.body()?.string()
-                responseData?.let {
-                    parseAndSaveData(responseData)
+                withContext(Dispatchers.IO) {
+                    val responseData = response.body()?.string()
+                    responseData?.let {
+                        parseAndSaveData(responseData)
+                    }
                 }
-
                 // update items
                 items = database.categoryWithChildrenDao().getTopLevelCategories()
             } else {
